@@ -1,6 +1,7 @@
 import createElement from '../../assets/lib/create-element.js';
 
-class ProductCard {
+// Экспортируем класс ProductCard по умолчанию
+export default class ProductCard {
     constructor(product) {
         this.product = product;
         this.render();
@@ -36,5 +37,3 @@ class ProductCard {
         this.elem.dispatchEvent(event);
     }
 }
-
-export default ProductCard;
