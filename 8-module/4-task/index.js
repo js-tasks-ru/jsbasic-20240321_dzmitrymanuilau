@@ -165,53 +165,59 @@ export default class Cart {
 }
 
 onSubmit(event) {
-  event.preventDefault();
-  const formData = new FormData(event.target);
-  const submitButton = event.target.querySelector('button[type="submit"]');
-  submitButton.classList.add('is-loading');
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    submitButton.classList.add('is-loading');
 
-  fetch('https://httpbin.org/post', {
-      method: 'POST',
-      body: formData
-  })
-  .then(data => {
-    // Очищаем корзину
-    this.cartItems = [];
-    // Обновляем иконку корзины
-    this.cartIcon.update(this);
-    
-    // Устанавливаем заголовок модальному окну на "Success!"
-    this.modal.setTitle('Success!');
-    
-    // Устанавливаем содержимое модального окна
-    const successContent = createElement(`
-        <div class="modal__body-inner">
-            <p>Order successful! Your order is being cooked.<br>
-            We will notify you about delivery time shortly.<br>
-            <img src="/assets/images/delivery.gif"></p>
-        </div>
-    `);
-    this.modal.setBody(successContent);
-    // Открываем модальное окно
-    this.modal.open(); 
-    // Удаляем класс загрузки с кнопки
-    submitButton.classList.remove('is-loading');
-})
-.catch(error => {
-    console.error('Error:', error);
-    // Удаляем класс загрузки с кнопки в случае ошибки
-    submitButton.classList.remove('is-loading');
-    // Устанавливаем заголовок модальному окну на "Error!"
-    this.modal.setTitle('Error!');
-    // Устанавливаем содержимое модального окна с сообщением об ошибке
-    this.modal.setBody(createElement(`
-        <div class="modal__body-inner">
-            <p>There was an error processing your order. Please try again.</p>
-        </div>
-    `));
-    // Открываем модальное окно с сообщением об ошибке
-    this.modal.open();
-});
+    fetch('https://httpbin.org/post', {
+        method: 'POST',
+        body: formData
+    })
+    .then(data => {
+        // Очищаем корзину
+        this.cartItems = [];
+        // Обновляем иконку корзины
+        this.cartIcon.update(this);
+        
+        // Проверяем наличие модального окна
+        if (this.modal && this.modal.isOpen()) {
+            // Устанавливаем заголовок модальному окну на "Success!"
+            this.modal.setTitle('Success!');
+            
+            // Устанавливаем содержимое модального окна
+            const successContent = createElement(`
+                <div class="modal__body-inner">
+                    <p>Order successful! Your order is being cooked.<br>
+                    We will notify you about delivery time shortly.<br>
+                    <img src="/assets/images/delivery.gif"></p>
+                </div>
+            `);
+            this.modal.setBody(successContent);
+            // Открываем модальное окно
+            this.modal.open(); 
+        }
+        // Удаляем класс загрузки с кнопки
+        submitButton.classList.remove('is-loading');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Удаляем класс загрузки с кнопки в случае ошибки
+        submitButton.classList.remove('is-loading');
+        // Проверяем наличие модального окна
+        if (this.modal && this.modal.isOpen()) {
+            // Устанавливаем заголовок модальному окну на "Error!"
+            this.modal.setTitle('Error!');
+            // Устанавливаем содержимое модального окна с сообщением об ошибке
+            this.modal.setBody(createElement(`
+                <div class="modal__body-inner">
+                    <p>There was an error processing your order. Please try again.</p>
+                </div>
+            `));
+            // Открываем модальное окно с сообщением об ошибке
+            this.modal.open();
+        }
+    });
 }
 
 }
