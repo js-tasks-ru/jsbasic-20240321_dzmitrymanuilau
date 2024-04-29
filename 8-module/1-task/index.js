@@ -39,46 +39,48 @@ export default class CartIcon {
   }
 
   updatePosition() {
+    // Проверяем, должна ли иконка быть видимой
     if (!this.elem.offsetWidth && !this.elem.offsetHeight) {
-      return; // Иконка корзины скрыта
+      return;
     }
   
-    if (window.innerWidth <= 767) {
+    // Проверка для мобильных устройств
+    if (document.documentElement.clientWidth <= 767) {
       Object.assign(this.elem.style, {
         position: '',
         top: '',
-        right: '',
+        left: '',
         zIndex: ''
       });
-      return; // Не перемещаем иконку в "мобильном" режиме
+      return;
     }
   
-    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    let initialTopCoord = this.elem.getBoundingClientRect().top + window.pageYOffset;
+    let isInitialized = !!this.initialTopCoord;
+    if (!isInitialized) {
+      this.initialTopCoord = this.elem.getBoundingClientRect().top + window.pageYOffset;
+    }
   
-    if (scrollTop > initialTopCoord - this.elem.offsetHeight) {
-      this.elem.style.position = 'fixed';
-      this.elem.style.top = '50px'; // Фиксируем иконку на 50px сверху
-      this.elem.style.zIndex = '1000'; // Повышаем z-index
+    if (window.pageYOffset > this.initialTopCoord) {
+      let leftIndent = Math.min(
+        document.querySelector('.container').getBoundingClientRect().right + 20,
+        document.documentElement.clientWidth - this.elem.offsetWidth - 10
+      );
   
-      let container = document.querySelector('.container');
-      if (container) {
-        let containerRect = container.getBoundingClientRect();
-        let containerRightEdge = containerRect.right + 20; // 20px правее контейнера
-        let screenRightEdge = document.documentElement.clientWidth - 10; // 10px от правого края окна
-        let maxRightPosition = Math.min(containerRightEdge, screenRightEdge); // Находим меньшее значение
-  
-        this.elem.style.right = `${document.documentElement.clientWidth - maxRightPosition}px`;
-      } else {
-        this.elem.style.right = '10px'; // Если контейнер не найден, устанавливаем 10px от правого края
-      }
+      Object.assign(this.elem.style, {
+        position: 'fixed',
+        top: '50px',
+        zIndex: 1000,
+        right: '10px',
+        left: `${leftIndent}px`
+      });
     } else {
       Object.assign(this.elem.style, {
-        position: 'absolute', // Возвращаем абсолютное позиционирование
+        position: '',
         top: '',
-        right: '',
+        left: '',
         zIndex: ''
       });
     }
-  }  
+  }
+  
 }
