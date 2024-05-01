@@ -13,14 +13,37 @@ import Cart from '../../8-module/4-task/index.js';
 
 export default class Main {
   constructor() {
+    // Пустой конструктор
+  }
+
+  async render() {
+    // Инициализация свойств экземпляра класса
     this.slides = slides;
     this.categories = categories;
+
+    // Инициализация компонентов
     this.initComponents();
+
+    // Инициализация слушателей событий
     this.initEventListeners();
+
+    // Загрузка и отображение продуктов
+    try {
+      const response = await fetch('products.json');
+      const products = await response.json();
+
+      const gridHolder = document.querySelector('[data-products-grid-holder]');
+      gridHolder.innerHTML = '';  // Очистка предыдущих товаров
+      this.productsGrid = new ProductsGrid(products);
+      gridHolder.appendChild(this.productsGrid.elem);
+
+      this.updateFilters();
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+    }
   }
 
   initComponents() {
-    // Очищаем контейнеры перед инициализацией компонентов, чтобы избежать дублирования
     const carouselHolder = document.querySelector('[data-carousel-holder]');
     carouselHolder.innerHTML = '';
     this.carousel = new Carousel(this.filterUniqueSlides(this.slides));
@@ -51,22 +74,6 @@ export default class Main {
       uniqueIds.add(slide.id);
       return !isDuplicate;
     });
-  }
-
-  async render() {
-    try {
-      const response = await fetch('products.json');
-      const products = await response.json();
-
-      const gridHolder = document.querySelector('[data-products-grid-holder]');
-      gridHolder.innerHTML = '';  // Очистка предыдущих товаров
-      this.productsGrid = new ProductsGrid(products);
-      gridHolder.appendChild(this.productsGrid.elem);
-
-      this.updateFilters();
-    } catch (error) {
-      console.error('Failed to fetch products:', error);
-    }
   }
 
   updateFilters() {
@@ -103,9 +110,3 @@ export default class Main {
     });
   }
 }
-
-// Использование класса Main при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => {
-  const main = new Main();
-  main.render();
-});
