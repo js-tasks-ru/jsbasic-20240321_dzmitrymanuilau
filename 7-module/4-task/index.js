@@ -30,40 +30,50 @@ export default class StepSlider {
     const thumb = this.elem.querySelector('.slider__thumb');
     thumb.ondragstart = () => false;
 
-    thumb.addEventListener('pointerdown', this.onPointerDown.bind(this));
+    thumb.addEventListener('pointerdown', event => {
+      event.preventDefault();
+      this.elem.classList.add('slider_dragging');
+
+      document.addEventListener('pointermove', this.onPointerMove.bind(this));
+      document.addEventListener('pointerup', this.onPointerUp.bind(this), { once: true });
+    });
+
     this.elem.addEventListener('click', this.onClick.bind(this));
   }
 
   onPointerDown(event) {
-    event.preventDefault();
-    this.elem.classList.add('slider_dragging');
-
-    document.addEventListener('pointermove', this.onPointerMove.bind(this));
-    document.addEventListener('pointerup', this.onPointerUp.bind(this));
+    //Метод остаётся пустым для будущего расширения
   }
 
   onPointerMove(event) {
     let left = event.clientX - this.elem.getBoundingClientRect().left;
     let leftRelative = left / this.elem.offsetWidth;
-
+  
     leftRelative = Math.max(0, Math.min(leftRelative, 1));
-
+  
     const newLeftPercent = leftRelative * 100;
     const newValue = Math.round(leftRelative * (this.steps - 1));
-
+  
     const thumb = this.elem.querySelector('.slider__thumb');
     const progress = this.elem.querySelector('.slider__progress');
-
+  
     thumb.style.left = `${newLeftPercent}%`;
     progress.style.width = `${newLeftPercent}%`;
-
+  
     this.updateValue(newValue);
-  }
+  
+    // Проверка на изменение значения и генерация события
+    if (newValue !== this.value) {
+      this.value = newValue;  // обновляем значение
+      this.elem.dispatchEvent(new CustomEvent('slider-change', {
+        detail: this.value,
+        bubbles: true
+      }));
+    }
+  }  
 
   onPointerUp() {
     document.removeEventListener('pointermove', this.onPointerMove);
-    document.removeEventListener('pointerup', this.onPointerUp);
-
     this.elem.classList.remove('slider_dragging');
     this.setValue(this.value);
   }
@@ -76,24 +86,12 @@ export default class StepSlider {
   }
 
   setValue(newValue) {
-    if (newValue < 0 || newValue >= this.steps) {
-      return; // Guard against invalid value assignment
-    }
+    if (newValue < 0 || newValue >= this.steps) return;
 
     this.value = newValue;
     const percentage = this.getPercentage();
 
-    const thumb = this.elem.querySelector('.slider__thumb');
-    const progress = this.elem.querySelector('.slider__progress');
-    const steps = this.elem.querySelectorAll('span');
-
-    thumb.style.left = `${percentage}%`;
-    progress.style.width = `${percentage}%`;
-
-    steps.forEach(step => step.classList.remove('slider__step-active'));
-    steps[newValue].classList.add('slider__step-active');
-
-    thumb.querySelector('.slider__value').textContent = newValue;
+    this.updateSlider(newValue, percentage);
 
     this.elem.dispatchEvent(new CustomEvent('slider-change', {
       detail: this.value,
@@ -108,7 +106,23 @@ export default class StepSlider {
       const steps = this.elem.querySelectorAll('span');
       steps.forEach(step => step.classList.remove('slider__step-active'));
       steps[newValue].classList.add('slider__step-active');
+  
+      // Переместили генерацию события в onPointerMove для корректной обработки drag-and-drop
     }
+  }  
+
+  updateSlider(newValue, newLeftPercent) {
+    const thumb = this.elem.querySelector('.slider__thumb');
+    const progress = this.elem.querySelector('.slider__progress');
+    const valueSpan = this.elem.querySelector('.slider__value');
+    const steps = this.elem.querySelectorAll('span');
+
+    thumb.style.left = `${newLeftPercent}%`;
+    progress.style.width = `${newLeftPercent}%`;
+    valueSpan.textContent = newValue;
+
+    steps.forEach(step => step.classList.remove('slider__step-active'));
+    steps[newValue].classList.add('slider__step-active');
   }
 
   getPercentage() {

@@ -39,6 +39,48 @@ export default class CartIcon {
   }
 
   updatePosition() {
-    // ваш код ...
+    // Проверяем, должна ли иконка быть видимой
+    if (!this.elem.offsetWidth && !this.elem.offsetHeight) {
+      return;
+    }
+  
+    // Проверка для мобильных устройств
+    if (document.documentElement.clientWidth <= 767) {
+      Object.assign(this.elem.style, {
+        position: '',
+        top: '',
+        left: '',
+        zIndex: ''
+      });
+      return;
+    }
+  
+    let isInitialized = !!this.initialTopCoord;
+    if (!isInitialized) {
+      this.initialTopCoord = this.elem.getBoundingClientRect().top + window.pageYOffset;
+    }
+  
+    if (window.pageYOffset > this.initialTopCoord) {
+      let leftIndent = Math.min(
+        document.querySelector('.container').getBoundingClientRect().right + 20,
+        document.documentElement.clientWidth - this.elem.offsetWidth - 10
+      );
+  
+      Object.assign(this.elem.style, {
+        position: 'fixed',
+        top: '50px',
+        zIndex: 1000,
+        right: '10px',
+        left: `${leftIndent}px`
+      });
+    } else {
+      Object.assign(this.elem.style, {
+        position: '',
+        top: '',
+        left: '',
+        zIndex: ''
+      });
+    }
   }
+  
 }
